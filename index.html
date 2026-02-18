@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funciones No Lineales y Dinámica de Poblaciones</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Fondo azul rey metálico con degradado sutil */
+            background: linear-gradient(145deg, #1a2a4f 0%, #0e1a2b 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            color: #0a1a2f;
+            border-bottom: 4px solid #3a5f8b;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1e3a5f;
+            margin: 25px 0 15px 0;
+            font-size: 1.8em;
+            border-left: 6px solid #3a5f8b;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #2c4c6e;
+            margin: 20px 0 10px 0;
+            font-size: 1.4em;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul {
+            margin: 10px 0 20px 30px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .card {
+            background: #e8f0fe;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 8px solid #2a4b7c;
+            box-shadow: 0 5px 15px rgba(0, 20, 40, 0.2);
+        }
+        .formula {
+            background: #0a1a2f;
+            color: #e8f0fe;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            text-align: center;
+            margin: 15px 0;
+            border: 1px solid #4a6e9e;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #533f03;
+        }
+        .quiz-section {
+            background: #ffffff;
+            border: 3px solid #2a4b7c;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 40px;
+            box-shadow: 0 10px 25px rgba(26, 42, 79, 0.4);
+        }
+        .question {
+            background: #f0f5ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #2a4b7c;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .option {
+            flex: 1 1 200px;
+            padding: 10px;
+            background: #d9e6f2;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-weight: 500;
+        }
+        .option:hover {
+            background: #b8d1e8;
+            border-color: #2a4b7c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .option.selected {
+            background: #2a4b7c;
+            color: white;
+            border-color: #0a1a2f;
+        }
+        .option.correct {
+            background: #28a745 !important;
+            color: white;
+        }
+        .option.incorrect {
+            background: #dc3545 !important;
+            color: white;
+        }
+        .btn {
+            background: #2a4b7c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin: 10px 5px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn:hover {
+            background: #1e3a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        .btn.reset {
+            background: #5a6c7e;
+        }
+        .btn.reset:hover {
+            background: #3a4a5e;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .result.passed {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        .result.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #4a5a6e;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Funciones No Lineales y Dinámica de Poblaciones</h1>
+        
+        <!-- Sección 1: Funciones no lineales -->
+        <h2>1. ¿Qué son las funciones no lineales?</h2>
+        <p>Las funciones no lineales son aquellas en las que la relación entre la variable independiente (x) y la variable dependiente (y) <strong>no forma una línea recta</strong> en una gráfica.</p>
+        <div class="card">
+            <h3>Características principales:</h3>
+            <ul>
+                <li>✅ El cambio no es constante.</li>
+                <li>✅ Pequeñas variaciones pueden producir grandes cambios.</li>
+                <li>✅ Pueden incluir potencias, raíces, exponenciales, fracciones o funciones trigonométricas.</li>
+            </ul>
+        </div>
+        <p><strong>Ejemplos:</strong> Funciones cuadráticas (y = x²), exponenciales (y = 2ˣ), logísticas.</p>
+        <p>Son importantes porque muchos fenómenos reales no crecen ni cambian de forma lineal.</p>
+
+        <!-- Sección 2: Dinámica de poblaciones -->
+        <h2>2. ¿Qué es la dinámica de poblaciones?</h2>
+        <p>Es el estudio de cómo cambia el número de individuos de una población a lo largo del tiempo. Analiza factores como nacimientos, muertes, migración, recursos disponibles, competencia y depredadores.</p>
+        <p>Se usa en biología, ecología, economía y ciencias sociales para entender cómo evolucionan poblaciones humanas, animales o incluso bacterias.</p>
+
+        <!-- Sección 3: Crecimiento exponencial -->
+        <h2>3. Modelo básico: Crecimiento exponencial</h2>
+        <p>Ocurre cuando una población aumenta a una tasa proporcional a su tamaño actual. <strong>Cuanto más grande, más rápido crece.</strong></p>
+        <div class="formula">
+            P(t) = P₀ · e^(r·t)
+        </div>
+        <ul>
+            <li><strong>P₀</strong> = población inicial</li>
+            <li><strong>r</strong> = tasa de crecimiento</li>
+            <li><strong>t</strong> = tiempo</li>
+        </ul>
+        <div class="warning">
+            ⚠️ Este modelo supone que no hay límites de recursos, competencia y el ambiente es ideal. En la realidad, no puede mantenerse indefinidamente.
+        </div>
+
+        <!-- Sección 4: Modelo logístico -->
+        <h2>4. Modelo logístico</h2>
+        <p>Describe el crecimiento cuando existen límites ambientales. Incluye el concepto de <strong>capacidad de carga (K)</strong>: máximo número de individuos que el ambiente puede sostener.</p>
+        <div class="card">
+            <h3>Características:</h3>
+            <ul>
+                <li>📈 Al inicio: crecimiento rápido (parecido al exponencial).</li>
+                <li>📉 Luego disminuye.</li>
+                <li>📊 Finalmente se estabiliza en K.</li>
+            </ul>
+            <p>La gráfica tiene forma de <strong>"S"</strong>.</p>
+        </div>
+        <p>Este modelo es más realista porque considera recursos limitados, competencia y espacio reducido.</p>
+
+        <!-- Sección 5: Comportamiento caótico -->
+        <h2>5. ¿Qué es el comportamiento caótico?</h2>
+        <p>Ocurre cuando un sistema parece desordenado o impredecible, pero en realidad sigue reglas matemáticas.</p>
+        <div class="card">
+            <h3>Características principales:</h3>
+            <ul>
+                <li>🦋 Muy sensible a condiciones iniciales (<strong>efecto mariposa</strong>).</li>
+                <li>🎲 Pequeñas diferencias producen resultados muy distintos.</li>
+                <li>🌀 No es aleatorio, tiene patrones ocultos.</li>
+            </ul>
+        </div>
+
+        <!-- Sección 6: Caos en poblaciones -->
+        <h2>6. ¿Cómo aparece el caos en poblaciones?</h2>
+        <p>En modelos no lineales como el logístico, cuando la tasa de crecimiento es muy alta:</p>
+        <ul>
+            <li>La población deja de estabilizarse.</li>
+            <li>Empieza a oscilar.</li>
+            <li>Puede entrar en fluctuaciones impredecibles.</li>
+        </ul>
+        <p>Esto significa que aunque el modelo sea matemático y exacto, los resultados pueden volverse irregulares y difíciles de predecir a largo plazo.</p>
+
+        <!-- Sección 7: Características del caos -->
+        <h2>7. Características del comportamiento caótico</h2>
+        <ul>
+            <li>Sensibilidad extrema a condiciones iniciales.</li>
+            <li>No es aleatorio, pero sí impredecible.</li>
+            <li>Presenta patrones repetitivos complejos.</li>
+            <li>Surge en sistemas no lineales.</li>
+            <li>Puede aparecer incluso en ecuaciones simples.</li>
+        </ul>
+
+        <!-- Sección 8: Conclusión -->
+        <h2>8. Conclusión</h2>
+        <p>Las funciones no lineales permiten modelar fenómenos reales donde los cambios no son constantes. En dinámica de poblaciones, ayudan a entender el crecimiento y regulación de especies. El crecimiento exponencial muestra aumento rápido en condiciones ideales, mientras que el modelo logístico explica los límites ambientales. Con tasas altas, pueden surgir comportamientos caóticos, demostrando que los sistemas naturales pueden ser deterministas pero impredecibles.</p>
+
+        <!-- APARTADO DE PREGUNTAS FÁCILES -->
+        <div class="quiz-section">
+            <h2 style="color: #2a4b7c; border-left-color: #2a4b7c;">🧠 Pon a prueba lo aprendido</h2>
+            <p>Responde estas preguntas fáciles sobre el tema:</p>
+
+            <div id="quiz-container">
+                <!-- Las preguntas se generarán dinámicamente con JavaScript -->
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" id="submitQuiz">✅ Verificar respuestas</button>
+                <button class="btn reset" id="resetQuiz">🔄 Intentar de nuevo</button>
+            </div>
+
+            <div id="quizResult" class="result" style="display: none;"></div>
+        </div>
+
+        <footer>
+            <p>Basado en el trabajo de Olguín - Funciones no lineales y dinámica de poblaciones</p>
+        </footer>
+    </div>
+
+    <script>
+        // Base de datos de preguntas fáciles
+        const questions = [
+            {
+                question: "1. ¿Cómo es la relación en una función no lineal?",
+                options: [
+                    "Forma una línea recta",
+                    "El cambio es constante",
+                    "No forma una línea recta",
+                    "Siempre es decreciente"
+                ],
+                correct: 2
+            },
+            {
+                question: "2. ¿Qué estudia la dinámica de poblaciones?",
+                options: [
+                    "El clima de una región",
+                    "Cómo cambia el número de individuos en el tiempo",
+                    "La velocidad de los ríos",
+                    "Las estrellas en el cielo"
+                ],
+                correct: 1
+            },
+            {
+                question: "3. En el crecimiento exponencial, ¿qué supone el modelo?",
+                options: [
+                    "Hay recursos limitados",
+                    "Hay mucha competencia",
+                    "No hay límites de recursos (ambiente ideal)",
+                    "La población siempre disminuye"
+                ],
+                correct: 2
+            },
+            {
+                question: "4. ¿Qué representa la 'capacidad de carga' (K) en el modelo logístico?",
+                options: [
+                    "El peso máximo de los individuos",
+                    "Máximo número de individuos que el ambiente puede sostener",
+                    "La velocidad de crecimiento",
+                    "La edad promedio de la población"
+                ],
+                correct: 1
+            },
+            {
+                question: "5. ¿Qué forma tiene la gráfica del modelo logístico?",
+                options: [
+                    "Línea recta",
+                    "Forma de 'S'",
+                    "Forma de 'U'",
+                    "Forma de campana"
+                ],
+                correct: 1
+            },
+            {
+                question: "6. ¿Qué es el 'efecto mariposa'?",
+                options: [
+                    "Las mariposas causan huracanes",
+                    "Pequeñas diferencias pueden producir grandes cambios",
+                    "Un tipo de insecto",
+                    "Un fenómeno meteorológico"
+                ],
+                correct: 1
+            },
+            {
+                question: "7. ¿Cuándo puede aparecer caos en una población?",
+                options: [
+                    "Cuando la tasa de crecimiento es muy baja",
+                    "Cuando hay muchos recursos",
+                    "Cuando la tasa de crecimiento es muy alta",
+                    "Siempre en poblaciones pequeñas"
+                ],
+                correct: 2
+            },
+            {
+                question: "8. ¿Cómo es el comportamiento caótico?",
+                options: [
+                    "Completamente aleatorio",
+                    "Sigue reglas matemáticas pero es impredecible",
+                    "Siempre predecible",
+                    "No tiene patrones"
+                ],
+                correct: 1
+            }
+        ];
+
+        // Contenedor del quiz
+        const quizContainer = document.getElementById('quiz-container');
+        const submitBtn = document.getElementById('submitQuiz');
+        const resetBtn = document.getElementById('resetQuiz');
+        const resultDiv = document.getElementById('quizResult');
+
+        // Guardar respuestas seleccionadas
+        let selectedAnswers = new Array(questions.length).fill(null);
+
+        // Renderizar preguntas
+        function renderQuiz() {
+            let html = '';
+            questions.forEach((q, index) => {
+                html += `
+                    <div class="question" id="q-${index}">
+                        <p><strong>${q.question}</strong></p>
+                        <div class="options" id="options-${index}">
+                `;
+                q.options.forEach((opt, optIndex) => {
+                    const isSelected = selectedAnswers[index] === optIndex;
+                    html += `
+                        <div class="option ${isSelected ? 'selected' : ''}" 
+                             data-question="${index}" 
+                             data-option="${optIndex}"
+                             onclick="selectOption(${index}, ${optIndex})">
+                            ${opt}
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+            quizContainer.innerHTML = html;
+        }
+
+        // Función global para seleccionar opción
+        window.selectOption = function(questionIndex, optionIndex) {
+            // Actualizar array de respuestas
+            selectedAnswers[questionIndex] = optionIndex;
+            
+            // Actualizar clases visuales
+            const optionsDiv = document.getElementById(`options-${questionIndex}`);
+            const optionDivs = optionsDiv.querySelectorAll('.option');
+            optionDivs.forEach((opt, idx) => {
+                if (idx === optionIndex) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+        };
+
+        // Verificar respuestas
+        function checkAnswers() {
+            let correctCount = 0;
+            
+            questions.forEach((q, index) => {
+                const selected = selectedAnswers[index];
+                const optionsDiv = document.getElementById(`options-${index}`);
+                const optionDivs = optionsDiv.querySelectorAll('.option');
+                
+                // Remover clases anteriores
+                optionDivs.forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                if (selected !== null) {
+                    if (selected === q.correct) {
+                        correctCount++;
+                        optionDivs[selected].classList.add('correct');
+                    } else {
+                        optionDivs[selected].classList.add('incorrect');
+                        optionDivs[q.correct].classList.add('correct');
+                    }
+                } else {
+                    // Marcar la correcta si no respondió
+                    optionDivs[q.correct].classList.add('correct');
+                }
+            });
+
+            // Mostrar resultado
+            resultDiv.style.display = 'block';
+            const percentage = (correctCount / questions.length) * 100;
+            if (percentage >= 70) {
+                resultDiv.className = 'result passed';
+                resultDiv.innerHTML = `✅ ¡Muy bien! Respondiste ${correctCount} de ${questions.length} correctamente (${Math.round(percentage)}%).`;
+            } else {
+                resultDiv.className = 'result failed';
+                resultDiv.innerHTML = `📚 Respondiste ${correctCount} de ${questions.length} correctamente (${Math.round(percentage)}%). Te recomendamos repasar el contenido.`;
+            }
+        }
+
+        // Resetear quiz
+        function resetQuiz() {
+            selectedAnswers = new Array(questions.length).fill(null);
+            renderQuiz();
+            resultDiv.style.display = 'none';
+        }
+
+        // Event listeners
+        submitBtn.addEventListener('click', checkAnswers);
+        resetBtn.addEventListener('click', resetQuiz);
+
+        // Inicializar
+        renderQuiz();
+    </script>
+</body>
+</html>
