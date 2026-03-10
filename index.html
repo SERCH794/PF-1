@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Independencia Física de Bases de Datos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #0a0f1f;
+        }
+
+        /* Fondo tecnológico */
+        .tech-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+                        linear-gradient(135deg, #0a0f1f 0%, #1a1f35 50%, #0a0f1f 100%);
+        }
+
+        .code-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 40px,
+                rgba(0, 255, 255, 0.03) 40px,
+                rgba(255, 0, 255, 0.03) 41px
+            );
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-50px); }
+            100% { transform: translateX(50px); }
+        }
+
+        /* PÁGINA DE INICIO */
+        .home-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 15, 31, 0.98);
+            backdrop-filter: blur(20px);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .home-page.hidden {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .home-content {
+            text-align: center;
+            z-index: 102;
+            animation: glowPulse 3s infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #ff00ff; }
+            50% { text-shadow: 0 0 40px #00ffff, 0 0 80px #ff00ff; }
+        }
+
+        .home-title {
+            font-size: 5rem;
+            color: white;
+            margin-bottom: 2rem;
+            letter-spacing: 5px;
+            animation: floatText 2s ease-in-out infinite;
+        }
+
+        @keyframes floatText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .home-subtitle {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 3rem;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .enter-btn {
+            padding: 1.5rem 4rem;
+            font-size: 1.8rem;
+            background: transparent;
+            border: 3px solid #00ffff;
+            color: #00ffff;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 30px rgba(0,255,255,0.3);
+            animation: bounceBtn 2s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enter-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(0,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .enter-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .enter-btn:hover {
+            background: #00ffff;
+            color: #0a0f1f;
+            box-shadow: 0 0 60px #00ffff;
+            transform: scale(1.1);
+        }
+
+        @keyframes bounceBtn {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .home-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 101;
+        }
+
+        .home-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ffff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #00ffff;
+            animation: homeFloat 4s infinite;
+        }
+
+        @keyframes homeFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { transform: translateY(50vh) scale(1); opacity: 0.8; }
+            100% { transform: translateY(0) scale(0); opacity: 0; }
+        }
+
+        /* Botón para volver al inicio */
+        .back-home-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(10, 15, 31, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #00ffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 99;
+            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+            animation: pulse 2s infinite;
+            backdrop-filter: blur(5px);
+        }
+
+        .back-home-btn:hover {
+            background: #00ffff;
+            color: #0a0f1f;
+            transform: scale(1.1) rotate(360deg);
+            box-shadow: 0 0 40px #00ffff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Contenedor principal después del inicio */
+        .main-content {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease;
+        }
+
+        .main-content.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Menú Vertical - HACIA ABAJO */
+        .vertical-menu {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Botón central */
+        .center-button {
+            width: 220px;
+            height: 220px;
+            background: rgba(10, 15, 31, 0.95);
+            border: 4px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 30;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5),
+                       0 0 100px rgba(255, 0, 255, 0.3),
+                       inset 0 0 40px rgba(0, 255, 255, 0.3);
+            animation: centerPulse 3s infinite;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+
+        .center-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px #00ffff,
+                       0 0 160px #ff00ff,
+                       inset 0 0 60px #00ffff;
+        }
+
+        .center-button i {
+            font-size: 4rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 20px #00ffff);
+        }
+
+        .center-button span {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 0 0 20px #00ffff;
+            letter-spacing: 2px;
+        }
+
+        .center-button .subtitle {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.9);
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        @keyframes centerPulse {
+            0%, 100% { box-shadow: 0 0 50px #00ffff, 0 0 100px #ff00ff; }
+            50% { box-shadow: 0 0 90px #00ffff, 0 0 180px #ff00ff; }
+        }
+
+        /* Contenedor de opciones - HACIA ABAJO */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease-in-out;
+        }
+
+        .options-container.active {
+            max-height: 1000px;
+        }
+
+        /* Items del menú - HACIA ABAJO */
+        .menu-item {
+            width: 280px;
+            height: 100px;
+            border-radius: 60px;
+            background: rgba(10, 15, 31, 0.95);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(0, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            transform: translateY(-20px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            z-index: 20;
+            overflow: hidden;
+            padding: 0 25px;
+            animation: slideIn 0.5s forwards;
+            animation-delay: calc(var(--i) * 0.1s);
+        }
+
+        .options-container.active .menu-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Iluminación en vivo para los items */
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 60px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #00ffff, #ff00ff);
+            background-size: 400% 400%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            animation: borderGlow 3s ease infinite;
+        }
+
+        .menu-item:hover::before {
+            opacity: 1;
+        }
+
+        .menu-item:hover {
+            box-shadow: 0 0 50px #00ffff;
+            border-color: transparent;
+            transform: scale(1.05) translateX(10px) !important;
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Iluminación interior del item */
+        .menu-item i {
+            font-size: 2.5rem;
+            color: #00ffff;
+            filter: drop-shadow(0 0 15px #00ffff);
+            animation: iconGlow 2s infinite;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .menu-item .item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-item span {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .menu-item .role {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes iconGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px #00ffff); }
+            50% { filter: drop-shadow(0 0 25px #ff00ff); }
+        }
+
+        /* Modal (igual que antes) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(10, 15, 31, 0.98);
+            border-radius: 30px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 2px rgba(0,255,255,0.3);
+            border: 1px solid rgba(0,255,255,0.3);
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .gallery-item {
+            background: rgba(0,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            aspect-ratio: 1/1;
+            border: 2px solid rgba(0,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .main-image-area {
+            width: 100%;
+            height: 250px;
+            border-radius: 20px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            border: 3px solid rgba(0,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .main-image-area:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        }
+
+        .main-image-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0,255,255,0.3);
+        }
+
+        .modal-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #00ffff;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-avatar i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .modal-title h2 {
+            font-size: 2rem;
+            color: white;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .modal-title p {
+            color: #00ffff;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+        }
+
+        .info-box {
+            background: rgba(0,255,255,0.05);
+            border-radius: 15px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            border-left: 4px solid #00ffff;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.6;
+            animation: boxGlow 3s infinite;
+        }
+
+        @keyframes boxGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0,255,255,0.3); }
+            50% { box-shadow: 0 0 30px rgba(255,0,255,0.3); }
+        }
+
+        .info-box h4 {
+            color: #00ffff;
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .bullet-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .bullet {
+            background: rgba(0,255,255,0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.95rem;
+            border: 1px solid rgba(0,255,255,0.2);
+            transition: all 0.3s ease;
+            animation: bulletGlow 2s infinite;
+            animation-delay: calc(var(--i) * 0.2s);
+        }
+
+        @keyframes bulletGlow {
+            0%, 100% { border-color: rgba(0,255,255,0.2); box-shadow: 0 0 5px rgba(0,255,255,0.2); }
+            50% { border-color: #00ffff; box-shadow: 0 0 20px #00ffff; }
+        }
+
+        .bullet:hover {
+            border-color: #00ffff;
+            transform: translateX(5px);
+            animation: none;
+            box-shadow: 0 0 30px #00ffff;
+        }
+
+        .bullet i {
+            color: #00ffff;
+            margin-right: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .comparison-table {
+            background: rgba(0,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .table-header {
+            background: rgba(0,255,255,0.15);
+            color: #00ffff;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-cell {
+            padding: 1rem;
+            color: white;
+            border-right: 1px solid rgba(0,255,255,0.1);
+        }
+
+        .table-cell:last-child {
+            border-right: none;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #00ffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            transform: rotate(90deg);
+            background: #00ffff;
+            color: #0a0f1f;
+        }
+
+        @media (max-width: 768px) {
+            .center-button {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .center-button i {
+                font-size: 2.5rem;
+            }
+            
+            .center-button span {
+                font-size: 1rem;
+            }
+            
+            .menu-item {
+                width: 240px;
+                height: 80px;
+                padding: 0 15px;
+            }
+            
+            .menu-item i {
+                font-size: 2rem;
+                min-width: 40px;
+            }
+            
+            .menu-item span {
+                font-size: 1rem;
+            }
+            
+            .modal-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .table-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0f1f;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 4px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="tech-background">
+        <div class="code-lines"></div>
+    </div>
+
+    <!-- PÁGINA DE INICIO -->
+    <div class="home-page" id="homePage">
+        <div class="home-particles" id="homeParticles"></div>
+        <div class="home-content">
+            <h1 class="home-title">🔮 INDEPENDENCIA</h1>
+            <h1 class="home-title">FÍSICA DE DATOS</h1>
+            <p class="home-subtitle">Explora los conceptos fundamentales</p>
+            <button class="enter-btn" onclick="startExperience()">
+                <i class="fas fa-database"></i> COMENZAR
+            </button>
+        </div>
+    </div>
+
+    <!-- Botón para volver al inicio -->
+    <div class="back-home-btn" onclick="goToHome()" title="Volver al inicio">
+        <i class="fas fa-home"></i>
+    </div>
+
+    <!-- Contenido principal con menú VERTICAL HACIA ABAJO -->
+    <div class="main-content" id="mainContent">
+        <div class="vertical-menu">
+            <!-- Botón central -->
+            <div class="center-button" onclick="toggleMenu()">
+                <i class="fas fa-database"></i>
+                <span>INDEPENDENCIA</span>
+                <span class="subtitle">FÍSICA DE DATOS</span>
+            </div>
+
+            <!-- Contenedor de opciones que se despliegan hacia abajo -->
+            <div class="options-container" id="optionsContainer">
+                <!-- Items del menú vertical -->
+                <div class="menu-item" style="--i: 1" onclick="openModal('definicion')">
+                    <i class="fas fa-book"></i>
+                    <div class="item-content">
+                        <span>Definición</span>
+                        <span class="role">Conceptos Fundamentales</span>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="--i: 2" onclick="openModal('cambios')">
+                    <i class="fas fa-arrows-spin"></i>
+                    <div class="item-content">
+                        <span>Cambios Físicos</span>
+                        <span class="role">Ejemplos Prácticos</span>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="--i: 3" onclick="openModal('importancia')">
+                    <i class="fas fa-star"></i>
+                    <div class="item-content">
+                        <span>Beneficios</span>
+                        <span class="role">Ventajas Clave</span>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="--i: 4" onclick="openModal('comparacion')">
+                    <i class="fas fa-scale-balanced"></i>
+                    <div class="item-content">
+                        <span>Física vs Lógica</span>
+                        <span class="role">Comparación</span>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="--i: 5" onclick="openModal('retos')">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <div class="item-content">
+                        <span>Retos</span>
+                        <span class="role">Desafíos</span>
+                    </div>
+                </div>
+
+                <div class="menu-item" style="--i: 6" onclick="openModal('cierre')">
+                    <i class="fas fa-flag-checkered"></i>
+                    <div class="item-content">
+                        <span>Conclusiones</span>
+                        <span class="role">Reflexión Final</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModalOnClick(event)">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script>
+        // Generar partículas para la página de inicio
+        function createHomeParticles() {
+            const container = document.getElementById('homeParticles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'home-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.animationDuration = 3 + Math.random() * 4 + 's';
+                particle.style.background = Math.random() > 0.5 ? '#00ffff' : '#ff00ff';
+                container.appendChild(particle);
+            }
+        }
+
+        // Función para comenzar la experiencia
+        function startExperience() {
+            const homePage = document.getElementById('homePage');
+            const mainContent = document.getElementById('mainContent');
+            
+            homePage.classList.add('hidden');
+            
+            // Mostrar el contenido principal después de ocultar el inicio
+            setTimeout(() => {
+                mainContent.classList.add('visible');
+            }, 1000);
+        }
+
+        // Función para volver al inicio
+        function goToHome() {
+            const homePage = document.getElementById('homePage');
+            const mainContent = document.getElementById('mainContent');
+            const optionsContainer = document.getElementById('optionsContainer');
+            
+            // Cerrar el menú si está abierto
+            optionsContainer.classList.remove('active');
+            
+            mainContent.classList.remove('visible');
+            homePage.classList.remove('hidden');
+            
+            // Recrear partículas
+            document.getElementById('homeParticles').innerHTML = '';
+            createHomeParticles();
+        }
+
+        let menuActive = false;
+
+        function toggleMenu() {
+            const optionsContainer = document.getElementById('optionsContainer');
+            menuActive = !menuActive;
+            optionsContainer.classList.toggle('active', menuActive);
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            
+            const content = getModalContent(type);
+            modalContent.innerHTML = content;
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeModalOnClick(event) {
+            if (event.target === event.currentTarget) {
+                closeModal();
+            }
+        }
+
+        function getModalContent(type) {
+            const contents = {
+                definicion: {
+                    icon: 'fa-book',
+                    title: 'Definición',
+                    subtitle: 'Conceptos Fundamentales',
+                    mainInfo: 'La independencia física de datos es la capacidad de modificar el esquema físico de una base de datos sin afectar el esquema lógico ni las aplicaciones. Los usuarios y programas ven los datos igual, aunque internamente el sistema cambie cómo los guarda.',
+                    bullets: [
+                        'Nivel interno (físico): cómo se almacenan los datos',
+                        'Nivel conceptual (lógico): tablas y atributos',
+                        'Nivel externo (vistas): cómo ven los datos las apps',
+                        'El SGBD traduce SQL a acceso físico',
+                        'Cambios físicos no afectan lo conceptual'
+                    ],
+                    examples: [
+                        'Tabla pasa de secuencial a indexado sin cambiar SQL',
+                        'Modificar métodos de acceso sin alterar consultas'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200',
+                        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200'
+                    ]
+                },
+                cambios: {
+                    icon: 'fa-arrows-spin',
+                    title: 'Cambios Físicos',
+                    subtitle: 'Ejemplos Permitidos',
+                    mainInfo: 'El administrador puede optimizar el rendimiento con cambios a nivel hardware o de estructura de archivos, sin que los usuarios se enteren. El SGBD mantiene la transparencia.',
+                    bullets: [
+                        'Crear/eliminar índices',
+                        'Migración a nuevo hardware (HDD a SSD)',
+                        'Reorganización de archivos',
+                        'Fragmentación y reorganización',
+                        'Cambios en configuración del motor',
+                        'Compresión y particionamiento'
+                    ],
+                    examples: [
+                        'Crear índice en VENTAS: consultas más rápidas sin cambiar código',
+                        'Migrar a SSD: mejora rendimiento sin modificar apps'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1563770660941-20978e87062b?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200',
+                        'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200'
+                    ]
+                },
+                importancia: {
+                    icon: 'fa-star',
+                    title: 'Beneficios',
+                    subtitle: 'Ventajas Clave',
+                    mainInfo: 'La independencia física separa el almacenamiento físico de la estructura lógica, permitiendo cambios sin afectar aplicaciones.',
+                    bullets: [
+                        'Flexibilidad: cambiar almacenamiento sin tocar apps',
+                        'Optimización de rendimiento sin interrupciones',
+                        'Escalabilidad: adaptarse a más datos',
+                        'Menos costos: migraciones simples',
+                        'Seguridad: controles independientes',
+                        'Mejor mantenimiento'
+                    ],
+                    examples: [
+                        'Cambiar de cinta magnética a disco sin afectar apps',
+                        'Mover BD de disco sin impacto en usuarios'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=200'
+                    ]
+                },
+                comparacion: {
+                    icon: 'fa-scale-balanced',
+                    title: 'Física vs Lógica',
+                    subtitle: 'Comparativa',
+                    mainInfo: 'La independencia de datos permite modificar la estructura sin afectar aplicaciones: física (cómo se guardan) y lógica (cómo se organizan).',
+                    bullets: [
+                        'Física: cambios en almacenamiento',
+                        'Lógica: cambios en estructura de tablas',
+                        'Física: transparente para apps',
+                        'Lógica: puede requerir cambios',
+                        'Física: más frecuente',
+                        'Lógica: menos frecuente'
+                    ],
+                    examples: [
+                        'Física: cambiar HDD a SSD',
+                        'Lógica: agregar columna "correo"'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=200',
+                        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200',
+                        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200'
+                    ]
+                },
+                retos: {
+                    icon: 'fa-triangle-exclamation',
+                    title: 'Retos',
+                    subtitle: 'Desafíos',
+                    mainInfo: 'Aunque ofrece ventajas, la independencia física presenta desafíos que requieren consideración.',
+                    bullets: [
+                        'Complejidad del diseño',
+                        'Impacto en rendimiento',
+                        'Vulnerabilidades de seguridad',
+                        'Dificultad para escalar',
+                        'Compatibilidad con hardware',
+                        'Costos de reestructuración'
+                    ],
+                    examples: [
+                        'Requiere monitoreo continuo',
+                        'Backups durante migraciones'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200'
+                    ]
+                },
+                cierre: {
+                    icon: 'fa-flag-checkered',
+                    title: 'Conclusiones',
+                    subtitle: 'Reflexión Final',
+                    mainInfo: 'La independencia física es fundamental en arquitectura moderna de BD, permitiendo adaptarse a nuevas tecnologías sin interrumpir operaciones.',
+                    bullets: [
+                        'Base para sistemas escalables',
+                        'Clave en migración a la nube',
+                        'Facilita innovación tecnológica',
+                        'Reduce downtime operativo',
+                        'Optimización de recursos',
+                        'Prepara para futuro digital'
+                    ],
+                    examples: [
+                        'Bases de datos autónomas',
+                        'Almacenamiento multi-nube'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=200'
+                    ]
+                }
+            };
+
+            const data = contents[type];
+
+            return `
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                
+                <div class="modal-header">
+                    <div class="modal-avatar">
+                        <i class="fas ${data.icon}"></i>
+                    </div>
+                    <div class="modal-title">
+                        <h2>${data.title}</h2>
+                        <p>${data.subtitle}</p>
+                    </div>
+                </div>
+
+                <div class="main-image-area">
+                    <img src="${data.mainImage}" alt="Imagen principal ${data.title}">
+                </div>
+
+                <div class="info-box">
+                    <h4>📌 Concepto Principal</h4>
+                    <p>${data.mainInfo}</p>
+                </div>
+
+                <h4 style="color:white;margin:1.5rem 0 0.5rem;">🔑 Puntos Clave</h4>
+                <div class="bullet-points">
+                    ${data.bullets.map((bullet, index) => `
+                        <div class="bullet" style="--i: ${index}">
+                            <i class="fas fa-check-circle"></i> ${bullet}
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${type === 'comparacion' ? `
+                    <h4 style="color:white;margin:1.5rem 0 0.5rem;">📊 Comparativa</h4>
+                    <div class="comparison-table">
+                        <div class="table-row table-header">
+                            <div class="table-cell">Aspecto</div>
+                            <div class="table-cell">Ind. Física</div>
+                            <div class="table-cell">Ind. Lógica</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell">¿Qué cambia?</div>
+                            <div class="table-cell">Cómo se guardan</div>
+                            <div class="table-cell">Cómo se organizan</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell">Ejemplo</div>
+                            <div class="table-cell">HDD a SSD</div>
+                            <div class="table-cell">Agregar columna</div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <h4 style="color:white;margin:1.5rem 0 0.5rem;">💡 Ejemplos</h4>
+                <div class="bullet-points">
+                    ${data.examples.map((example, index) => `
+                        <div class="bullet" style="--i: ${index + 10}">
+                            <i class="fas fa-lightbulb"></i> ${example}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <h4 style="color:white;margin:1.5rem 0 0.5rem;">🖼️ Galería</h4>
+                <div class="image-gallery">
+                    ${data.galleryImages.map(img => `
+                        <div class="gallery-item">
+                            <img src="${img}" alt="Galería">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Inicializar partículas
+        createHomeParticles();
+    </script>
+</body>
+</html>
