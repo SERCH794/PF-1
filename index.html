@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Independencia Física de Bases de Datos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #0a0f1f;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Fondo tecnológico */
+        .tech-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
+                        linear-gradient(135deg, #0a0f1f 0%, #1a1f35 50%, #0a0f1f 100%);
+        }
+
+        .code-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 50px,
+                rgba(0, 255, 255, 0.05) 50px,
+                rgba(255, 0, 255, 0.05) 51px
+            );
+            animation: scan 12s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(100px); }
+        }
+
+        /* PANTALLA DE INICIO CON SCROLL */
+        .inicio {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            background: rgba(10, 15, 31, 0.98);
+            backdrop-filter: blur(10px);
+            transition: opacity 0.5s ease;
+            padding: 2rem;
+        }
+
+        .inicio.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Personalizar scrollbar */
+        .inicio::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .inicio::-webkit-scrollbar-track {
+            background: #1a1f35;
+            border-radius: 6px;
+        }
+
+        .inicio::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, cyan, magenta);
+            border-radius: 6px;
+            border: 2px solid #1a1f35;
+            animation: scrollGlow 2s infinite;
+        }
+
+        .inicio::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, magenta, cyan);
+        }
+
+        @keyframes scrollGlow {
+            0% { box-shadow: 0 0 5px cyan; }
+            50% { box-shadow: 0 0 20px cyan, 0 0 30px magenta; }
+            100% { box-shadow: 0 0 5px cyan; }
+        }
+
+        .inicio-content {
+            text-align: center;
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 3rem;
+            border: 3px solid cyan;
+            border-radius: 60px;
+            background: rgba(17, 22, 42, 0.9);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 60px cyan, 0 0 120px magenta;
+            animation: contentGlow 3s infinite alternate;
+        }
+
+        @keyframes contentGlow {
+            0% { box-shadow: 0 0 40px cyan, 0 0 80px magenta; }
+            100% { box-shadow: 0 0 70px cyan, 0 0 140px magenta; }
+        }
+
+        .inicio-icon {
+            font-size: 5rem;
+            color: cyan;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 30px cyan);
+            animation: rotate 10s linear infinite, iconGlow 2s infinite;
+        }
+
+        @keyframes iconGlow {
+            0% { filter: drop-shadow(0 0 20px cyan); }
+            50% { filter: drop-shadow(0 0 40px cyan) drop-shadow(0 0 20px magenta); }
+            100% { filter: drop-shadow(0 0 20px cyan); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .inicio-titulo {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, cyan, magenta);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0,255,255,0.3);
+            animation: titleGlow 2s infinite;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px cyan; }
+            50% { text-shadow: 0 0 40px cyan, 0 0 20px magenta; }
+            100% { text-shadow: 0 0 20px cyan; }
+        }
+
+        .inicio-subtitulo {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            animation: subtitleGlow 2s infinite;
+        }
+
+        @keyframes subtitleGlow {
+            0% { text-shadow: 0 0 10px cyan; }
+            50% { text-shadow: 0 0 20px cyan, 0 0 10px magenta; }
+            100% { text-shadow: 0 0 10px cyan; }
+        }
+
+        .equipo-tag {
+            display: inline-block;
+            padding: 0.5rem 2rem;
+            background: linear-gradient(45deg, cyan, magenta);
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #0a0f1f;
+            animation: tagGlow 2s infinite;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        }
+
+        @keyframes tagGlow {
+            0% { box-shadow: 0 0 20px cyan; }
+            50% { box-shadow: 0 0 40px cyan, 0 0 20px magenta; }
+            100% { box-shadow: 0 0 20px cyan; }
+        }
+
+        .integrantes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .integrante {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            border: 2px solid cyan;
+            border-radius: 30px;
+            background: rgba(0,255,255,0.05);
+            transition: all 0.3s ease;
+            animation: integranteGlow 2s infinite;
+            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+            position: relative;
+        }
+
+        @keyframes integranteGlow {
+            0% { box-shadow: 0 0 15px cyan; border-color: cyan; }
+            25% { box-shadow: 0 0 25px cyan, 0 0 10px magenta; }
+            50% { box-shadow: 0 0 35px magenta, 0 0 15px cyan; }
+            75% { box-shadow: 0 0 25px cyan, 0 0 10px magenta; }
+            100% { box-shadow: 0 0 15px cyan; border-color: cyan; }
+        }
+
+        .integrante:hover {
+            transform: translateY(-10px);
+            animation: integranteHoverGlow 1s infinite;
+        }
+
+        @keyframes integranteHoverGlow {
+            0% { box-shadow: 0 0 30px magenta; }
+            50% { box-shadow: 0 0 50px magenta, 0 0 30px cyan; }
+            100% { box-shadow: 0 0 30px magenta; }
+        }
+
+        .icon-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .integrante i:first-child {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 15px currentColor);
+            animation: iconPulse 2s infinite;
+        }
+
+        .integrante .fa-glasses {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: white;
+            filter: drop-shadow(0 0 8px cyan);
+        }
+
+        @keyframes iconPulse {
+            0% { filter: drop-shadow(0 0 10px currentColor); }
+            50% { filter: drop-shadow(0 0 25px currentColor) drop-shadow(0 0 15px magenta); }
+            100% { filter: drop-shadow(0 0 10px currentColor); }
+        }
+
+        .integrante-nombre {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .scroll-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: cyan;
+            margin: 2rem 0;
+            animation: bounce 2s infinite, indicatorGlow 2s infinite;
+        }
+
+        @keyframes indicatorGlow {
+            0% { text-shadow: 0 0 10px cyan; }
+            50% { text-shadow: 0 0 25px cyan, 0 0 15px magenta; }
+            100% { text-shadow: 0 0 10px cyan; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .info-seccion {
+            margin: 4rem 0 2rem;
+            padding: 2rem;
+            border: 2px solid rgba(0,255,255,0.3);
+            border-radius: 40px;
+            background: rgba(0,0,0,0.2);
+            animation: sectionGlow 3s infinite;
+        }
+
+        @keyframes sectionGlow {
+            0% { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 20px rgba(0,255,255,0.1); }
+            50% { border-color: rgba(255,0,255,0.3); box-shadow: 0 0 40px rgba(255,0,255,0.2); }
+            100% { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 20px rgba(0,255,255,0.1); }
+        }
+
+        .info-titulo {
+            font-size: 2rem;
+            color: cyan;
+            margin-bottom: 1.5rem;
+            animation: titlePulse 2s infinite;
+        }
+
+        @keyframes titlePulse {
+            0% { text-shadow: 0 0 15px cyan; }
+            50% { text-shadow: 0 0 30px cyan, 0 0 20px magenta; }
+            100% { text-shadow: 0 0 15px cyan; }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            padding: 1.5rem;
+            background: rgba(0,255,255,0.05);
+            border-radius: 25px;
+            border: 2px solid magenta;
+            transition: all 0.3s ease;
+            animation: cardGlow 2.5s infinite;
+        }
+
+        @keyframes cardGlow {
+            0% { box-shadow: 0 0 15px magenta; }
+            33% { box-shadow: 0 0 30px cyan; }
+            66% { box-shadow: 0 0 30px magenta; }
+            100% { box-shadow: 0 0 15px magenta; }
+        }
+
+        .info-card:hover {
+            transform: scale(1.05);
+            animation: cardHoverGlow 1s infinite;
+        }
+
+        @keyframes cardHoverGlow {
+            0% { box-shadow: 0 0 30px cyan; }
+            50% { box-shadow: 0 0 50px cyan, 0 0 30px magenta; }
+            100% { box-shadow: 0 0 30px cyan; }
+        }
+
+        .info-card i {
+            font-size: 2rem;
+            color: magenta;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 15px magenta);
+            animation: cardIconGlow 2s infinite;
+        }
+
+        @keyframes cardIconGlow {
+            0% { filter: drop-shadow(0 0 10px magenta); }
+            50% { filter: drop-shadow(0 0 25px magenta) drop-shadow(0 0 15px cyan); }
+            100% { filter: drop-shadow(0 0 10px magenta); }
+        }
+
+        .info-card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        .btn-comenzar {
+            display: inline-block;
+            padding: 1.2rem 4rem;
+            border: 3px solid cyan;
+            border-radius: 60px;
+            background: transparent;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 3rem 0 1rem;
+            animation: btnGlow 2s infinite;
+        }
+
+        @keyframes btnGlow {
+            0% { box-shadow: 0 0 20px cyan; }
+            50% { box-shadow: 0 0 50px cyan, 0 0 30px magenta; }
+            100% { box-shadow: 0 0 20px cyan; }
+        }
+
+        .btn-comenzar:hover {
+            background: cyan;
+            color: #0a0f1f;
+            transform: scale(1.1);
+            animation: btnHoverGlow 1s infinite;
+        }
+
+        @keyframes btnHoverGlow {
+            0% { box-shadow: 0 0 40px magenta; }
+            50% { box-shadow: 0 0 70px magenta, 0 0 40px cyan; }
+            100% { box-shadow: 0 0 40px magenta; }
+        }
+
+        /* CONTENEDOR PRINCIPAL CON EMBLEMA */
+        .center {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* BOTON CENTRAL (EMBLEMA) */
+        .center-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #0a0f1f;
+            border: 5px solid cyan;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+            animation: centerBtnGlow 2s infinite;
+            position: relative;
+        }
+
+        @keyframes centerBtnGlow {
+            0% { box-shadow: 0 0 30px cyan, 0 0 60px magenta; }
+            50% { box-shadow: 0 0 60px cyan, 0 0 100px magenta; }
+            100% { box-shadow: 0 0 30px cyan, 0 0 60px magenta; }
+        }
+
+        .center-btn:hover {
+            transform: scale(1.1);
+            animation: centerBtnHoverGlow 1s infinite;
+        }
+
+        @keyframes centerBtnHoverGlow {
+            0% { box-shadow: 0 0 50px cyan, 0 0 90px magenta; }
+            50% { box-shadow: 0 0 80px cyan, 0 0 130px magenta; }
+            100% { box-shadow: 0 0 50px cyan, 0 0 90px magenta; }
+        }
+
+        .center-btn i {
+            font-size: 50px;
+            margin-bottom: 10px;
+            color: cyan;
+            animation: centerIconGlow 2s infinite;
+        }
+
+        @keyframes centerIconGlow {
+            0% { filter: drop-shadow(0 0 20px cyan); }
+            50% { filter: drop-shadow(0 0 40px cyan) drop-shadow(0 0 20px magenta); }
+            100% { filter: drop-shadow(0 0 20px cyan); }
+        }
+
+        .center-btn span {
+            font-size: 18px;
+            text-align: center;
+            color: white;
+            animation: centerTextGlow 2s infinite;
+        }
+
+        @keyframes centerTextGlow {
+            0% { text-shadow: 0 0 10px cyan; }
+            50% { text-shadow: 0 0 25px cyan, 0 0 15px magenta; }
+            100% { text-shadow: 0 0 10px cyan; }
+        }
+
+        /* OVERLAY DE MENU CIRCULAR */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 15, 31, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 20;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .menu-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* MENU CIRCULAR - AHORA CON 6 OPCIONES */
+        .circular-menu {
+            position: relative;
+            width: 800px;
+            height: 800px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* OPCIONES EN EL MENU CIRCULAR */
+        .menu-option {
+            position: absolute;
+            width: 200px;
+            height: 70px;
+            background: rgba(17, 22, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 3px solid cyan;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: menuOptionGlow 2s infinite;
+        }
+
+        @keyframes menuOptionGlow {
+            0% { box-shadow: 0 0 20px cyan; border-color: cyan; }
+            33% { box-shadow: 0 0 35px cyan, 0 0 15px magenta; }
+            66% { box-shadow: 0 0 35px magenta, 0 0 20px cyan; border-color: magenta; }
+            100% { box-shadow: 0 0 20px cyan; border-color: cyan; }
+        }
+
+        .menu-option:hover {
+            transform: scale(1.15);
+            z-index: 30;
+            animation: menuOptionHoverGlow 0.8s infinite;
+        }
+
+        @keyframes menuOptionHoverGlow {
+            0% { box-shadow: 0 0 30px magenta; border-color: magenta; }
+            50% { box-shadow: 0 0 60px magenta, 0 0 40px cyan; }
+            100% { box-shadow: 0 0 30px magenta; border-color: magenta; }
+        }
+
+        .menu-option i {
+            font-size: 28px;
+            color: cyan;
+            animation: menuIconGlow 2s infinite;
+        }
+
+        @keyframes menuIconGlow {
+            0% { filter: drop-shadow(0 0 12px cyan); }
+            50% { filter: drop-shadow(0 0 30px cyan) drop-shadow(0 0 15px magenta); }
+            100% { filter: drop-shadow(0 0 12px cyan); }
+        }
+
+        .menu-option span {
+            font-size: 16px;
+            color: white;
+            font-weight: 600;
+            animation: menuTextGlow 2s infinite;
+        }
+
+        @keyframes menuTextGlow {
+            0% { text-shadow: 0 0 8px cyan; }
+            50% { text-shadow: 0 0 20px cyan, 0 0 12px magenta; }
+            100% { text-shadow: 0 0 8px cyan; }
+        }
+
+        /* NUEVAS POSICIONES PARA 6 OPCIONES EN CÍRCULO */
+        .menu-option.pos1 { transform: translate(0, -280px); }
+        .menu-option.pos2 { transform: translate(242px, -140px); }
+        .menu-option.pos3 { transform: translate(242px, 140px); }
+        .menu-option.pos4 { transform: translate(0, 280px); }
+        .menu-option.pos5 { transform: translate(-242px, 140px); }
+        .menu-option.pos6 { transform: translate(-242px, -140px); }
+
+        /* TOOLTIP CON NOMBRE */
+        .tooltip-name {
+            position: absolute;
+            bottom: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: cyan;
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 2px solid cyan;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 40;
+            pointer-events: none;
+            animation: tooltipGlow 2s infinite;
+        }
+
+        @keyframes tooltipGlow {
+            0% { box-shadow: 0 0 15px cyan; }
+            50% { box-shadow: 0 0 30px cyan, 0 0 20px magenta; }
+            100% { box-shadow: 0 0 15px cyan; }
+        }
+
+        .menu-option:hover .tooltip-name {
+            opacity: 1;
+            visibility: visible;
+            bottom: -55px;
+        }
+
+        /* BOTON CERRAR MENU */
+        .close-menu {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: transparent;
+            border: 3px solid magenta;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: magenta;
+            font-size: 32px;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s ease;
+            animation: closeMenuGlow 2s infinite;
+        }
+
+        @keyframes closeMenuGlow {
+            0% { box-shadow: 0 0 20px magenta; }
+            50% { box-shadow: 0 0 40px magenta, 0 0 20px cyan; }
+            100% { box-shadow: 0 0 20px magenta; }
+        }
+
+        .close-menu:hover {
+            transform: rotate(90deg);
+            background: magenta;
+            color: #0a0f1f;
+            animation: closeMenuHoverGlow 1s infinite;
+        }
+
+        @keyframes closeMenuHoverGlow {
+            0% { box-shadow: 0 0 35px magenta; }
+            50% { box-shadow: 0 0 60px magenta, 0 0 30px cyan; }
+            100% { box-shadow: 0 0 35px magenta; }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(10, 15, 31, 0.98);
+            border-radius: 40px;
+            width: 90%;
+            max-width: 1300px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            padding: 2.5rem;
+            border: 2px solid cyan;
+            animation: modalGlow 3s infinite;
+        }
+
+        @keyframes modalGlow {
+            0% { box-shadow: 0 0 40px cyan, 0 0 80px magenta; }
+            50% { box-shadow: 0 0 70px cyan, 0 0 120px magenta; }
+            100% { box-shadow: 0 0 40px cyan, 0 0 80px magenta; }
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #1a1f35;
+            border-radius: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, cyan, magenta);
+            border-radius: 6px;
+            animation: modalScrollGlow 2s infinite;
+        }
+
+        @keyframes modalScrollGlow {
+            0% { box-shadow: 0 0 5px cyan; }
+            50% { box-shadow: 0 0 20px cyan, 0 0 15px magenta; }
+            100% { box-shadow: 0 0 5px cyan; }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid cyan;
+        }
+
+        .modal-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid cyan;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, cyan, magenta);
+            animation: avatarGlow 2s infinite;
+        }
+
+        @keyframes avatarGlow {
+            0% { box-shadow: 0 0 20px cyan; }
+            50% { box-shadow: 0 0 40px cyan, 0 0 20px magenta; }
+            100% { box-shadow: 0 0 20px cyan; }
+        }
+
+        .modal-avatar i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .modal-title h2 {
+            font-size: 2.5rem;
+            color: white;
+            animation: modalTitleGlow 2s infinite;
+        }
+
+        @keyframes modalTitleGlow {
+            0% { text-shadow: 0 0 15px cyan; }
+            50% { text-shadow: 0 0 30px cyan, 0 0 20px magenta; }
+            100% { text-shadow: 0 0 15px cyan; }
+        }
+
+        .modal-title p {
+            color: cyan;
+            letter-spacing: 2px;
+            font-size: 1rem;
+            animation: modalSubtitleGlow 2s infinite;
+        }
+
+        @keyframes modalSubtitleGlow {
+            0% { text-shadow: 0 0 8px cyan; }
+            50% { text-shadow: 0 0 18px cyan, 0 0 10px magenta; }
+            100% { text-shadow: 0 0 8px cyan; }
+        }
+
+        .main-image-area {
+            width: 100%;
+            height: 300px;
+            border-radius: 25px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            border: 4px solid cyan;
+            animation: imageBorderGlow 2s infinite;
+        }
+
+        @keyframes imageBorderGlow {
+            0% { border-color: cyan; box-shadow: 0 0 20px cyan; }
+            50% { border-color: magenta; box-shadow: 0 0 40px magenta; }
+            100% { border-color: cyan; box-shadow: 0 0 20px cyan; }
+        }
+
+        .main-image-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info-box {
+            background: rgba(0,255,255,0.05);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 6px solid cyan;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            animation: infoBoxGlow 2s infinite;
+        }
+
+        @keyframes infoBoxGlow {
+            0% { border-left-color: cyan; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+            50% { border-left-color: magenta; box-shadow: 0 0 30px rgba(255,0,255,0.3); }
+            100% { border-left-color: cyan; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+        }
+
+        .info-box h4 {
+            color: cyan;
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+            animation: infoBoxTitleGlow 2s infinite;
+        }
+
+        @keyframes infoBoxTitleGlow {
+            0% { text-shadow: 0 0 8px cyan; }
+            50% { text-shadow: 0 0 18px cyan, 0 0 10px magenta; }
+            100% { text-shadow: 0 0 8px cyan; }
+        }
+
+        .bullet-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .bullet {
+            background: rgba(0,255,255,0.05);
+            padding: 1rem;
+            border-radius: 15px;
+            color: white;
+            border: 2px solid rgba(0,255,255,0.2);
+            transition: all 0.3s ease;
+            animation: bulletGlow 3s infinite;
+        }
+
+        @keyframes bulletGlow {
+            0% { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.2); }
+            33% { border-color: rgba(255,0,255,0.3); box-shadow: 0 0 20px rgba(255,0,255,0.3); }
+            66% { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 20px rgba(0,255,255,0.3); }
+            100% { border-color: rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.2); }
+        }
+
+        .bullet:hover {
+            animation: bulletHoverGlow 1s infinite;
+        }
+
+        @keyframes bulletHoverGlow {
+            0% { border-color: cyan; box-shadow: 0 0 30px cyan; }
+            50% { border-color: magenta; box-shadow: 0 0 40px magenta; }
+            100% { border-color: cyan; box-shadow: 0 0 30px cyan; }
+        }
+
+        .bullet i {
+            color: cyan;
+            margin-right: 0.8rem;
+            animation: bulletIconGlow 2s infinite;
+        }
+
+        @keyframes bulletIconGlow {
+            0% { filter: drop-shadow(0 0 5px cyan); }
+            50% { filter: drop-shadow(0 0 15px cyan) drop-shadow(0 0 8px magenta); }
+            100% { filter: drop-shadow(0 0 5px cyan); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border: 3px solid cyan;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: cyan;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: 0.3s;
+            animation: closeModalGlow 2s infinite;
+        }
+
+        @keyframes closeModalGlow {
+            0% { box-shadow: 0 0 15px cyan; }
+            50% { box-shadow: 0 0 35px cyan, 0 0 20px magenta; }
+            100% { box-shadow: 0 0 15px cyan; }
+        }
+
+        .close-modal:hover {
+            transform: rotate(90deg);
+            background: cyan;
+            color: #0a0f1f;
+            animation: closeModalHoverGlow 1s infinite;
+        }
+
+        @keyframes closeModalHoverGlow {
+            0% { box-shadow: 0 0 30px magenta; }
+            50% { box-shadow: 0 0 50px magenta, 0 0 30px cyan; }
+            100% { box-shadow: 0 0 30px magenta; }
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .gallery-item {
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid cyan;
+            animation: galleryItemGlow 2.5s infinite;
+        }
+
+        @keyframes galleryItemGlow {
+            0% { border-color: cyan; box-shadow: 0 0 15px cyan; }
+            50% { border-color: magenta; box-shadow: 0 0 30px magenta; }
+            100% { border-color: cyan; box-shadow: 0 0 15px cyan; }
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="tech-background">
+        <div class="code-lines"></div>
+    </div>
+
+    <!-- PANTALLA DE INICIO CON SCROLL - 6 INTEGRANTES -->
+    <div class="inicio" id="inicio">
+        <div class="inicio-content">
+            <i class="fas fa-database inicio-icon"></i>
+            <h1 class="inicio-titulo">INDEPENDENCIA FÍSICA</h1>
+            <h2 class="inicio-subtitulo">DE BASES DE DATOS</h2>
+            
+            <div class="equipo-tag">
+                <i class="fas fa-users"></i> EQUIPO #6
+            </div>
+
+            <div class="integrantes">
+                <!-- Sergio García - Chico con lentes (AZUL) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #3498db;"></i>
+                    </div>
+                    <div class="integrante-nombre">Sergio García</div>
+                </div>
+
+                <!-- Indrid Martinez - Mujer 1 (ROSA) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #ff69b4;"></i>
+                    </div>
+                    <div class="integrante-nombre">Indrid Martinez</div>
+                </div>
+
+                <!-- Lorena Martinez - Mujer 2 (ROSA) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #ff1493;"></i>
+                    </div>
+                    <div class="integrante-nombre">Lorena Martinez</div>
+                </div>
+
+                <!-- Dana Hernandez - Mujer 3 (ROSA) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #ff69b4;"></i>
+                    </div>
+                    <div class="integrante-nombre">Dana Hernandez</div>
+                </div>
+
+                <!-- Christopher Huerta - Chico pelo largo (AZUL) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #3498db;"></i>
+                    </div>
+                    <div class="integrante-nombre">Christopher Huerta</div>
+                </div>
+
+                <!-- Zion Alcaraz - Chico lentes aviador (AZUL) -->
+                <div class="integrante">
+                    <div class="icon-container">
+                        <i class="fas fa-user-circle" style="color: #3498db;"></i>
+                    </div>
+                    <div class="integrante-nombre">Zion Alcaraz</div>
+                </div>
+            </div>
+
+            <!-- Indicador de scroll -->
+            <div class="scroll-indicator">
+                <span>Desliza para ver más</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- Sección de información adicional (Resumen del PDF) -->
+            <div class="info-seccion">
+                <h2 class="info-titulo"> Sobre el Proyecto</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fas fa-database"></i>
+                        <h3>Objetivo</h3>
+                        <p>Explorar el concepto de independencia física en bases de datos, su arquitectura de niveles y cómo permite modificar el almacenamiento sin afectar las aplicaciones.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-microchip"></i>
+                        <h3>Tecnologías</h3>
+                        <p>Análisis del papel de SGBD como Oracle, MySQL y PostgreSQL en la traducción de consultas lógicas a estrategias de acceso físico.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Impacto</h3>
+                        <p>Cómo la independencia física mejora la flexibilidad, escalabilidad y mantenimiento, permitiendo cambios de hardware sin downtime.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-seccion">
+                <h2 class="info-titulo"> Metodología</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fas fa-search"></i>
+                        <h3>Investigación</h3>
+                        <p>Análisis de literatura especializada y casos de estudio en empresas tecnológicas.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-code"></i>
+                        <h3>Implementación</h3>
+                        <p>Desarrollo de ejemplos prácticos demostrando cambios físicos sin afectar aplicaciones.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-flask"></i>
+                        <h3>Pruebas</h3>
+                        <p>Evaluación de rendimiento antes y después de modificaciones en el almacenamiento físico.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-seccion">
+                <h2 class="info-titulo"> Resultados Esperados</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Rendimiento</h3>
+                        <p>Mejora en tiempos de respuesta sin modificar código de aplicaciones existentes.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Seguridad</h3>
+                        <p>Aislamiento de cambios físicos manteniendo la integridad de los datos.</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-cloud"></i>
+                        <h3>Escalabilidad</h3>
+                        <p>Adaptación a mayores volúmenes de datos sin rediseñar la estructura lógica.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-comenzar" onclick="comenzar()">
+                COMENZAR <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL CON EMBLEMA -->
+    <div class="center">
+        <div class="center-btn" onclick="toggleMenu()">
+            <i class="fas fa-database"></i>
+            <span>INDEPENDENCIA<br>FÍSICA</span>
+        </div>
+
+        <!-- Menú a pantalla completa con 6 opciones -->
+        <div class="menu-overlay" id="menuOverlay">
+            <div class="close-menu" onclick="toggleMenu()">
+                <i class="fas fa-times"></i>
+            </div>
+            
+            <div class="circular-menu">
+                <!-- Definición - Posición 1 (arriba) -->
+                <div class="menu-option pos1" onclick="openModal('definicion')">
+                    <i class="fas fa-book"></i>
+                    <span>Definición</span>
+                    <div class="tooltip-name">Christopher</div>
+                </div>
+
+                <!-- Cambios físicos - Posición 2 (arriba derecha) -->
+                <div class="menu-option pos2" onclick="openModal('cambios')">
+                    <i class="fas fa-microchip"></i>
+                    <span>Cambios físicos</span>
+                    <div class="tooltip-name">Sergio</div>
+                </div>
+
+                <!-- Beneficios - Posición 3 (abajo derecha) -->
+                <div class="menu-option pos3" onclick="openModal('beneficios')">
+                    <i class="fas fa-star"></i>
+                    <span>Beneficios</span>
+                    <div class="tooltip-name">Dana</div>
+                </div>
+
+                <!-- Física vs Lógica - Posición 4 (abajo) -->
+                <div class="menu-option pos4" onclick="openModal('comparacion')">
+                    <i class="fas fa-scale-balanced"></i>
+                    <span>Física vs Lógica</span>
+                    <div class="tooltip-name">Lorena</div>
+                </div>
+
+                <!-- Retos - Posición 5 (abajo izquierda) -->
+                <div class="menu-option pos5" onclick="openModal('retos')">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span>Retos</span>
+                    <div class="tooltip-name">Indrid</div>
+                </div>
+
+                <!-- Conclusión - Posición 6 (arriba izquierda) -->
+                <div class="menu-option pos6" onclick="openModal('cierre')">
+                    <i class="fas fa-flag-checkered"></i>
+                    <span>Conclusión</span>
+                    <div class="tooltip-name">Zion</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModalOnClick(event)">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script>
+        function comenzar() {
+            document.getElementById('inicio').classList.add('hidden');
+        }
+
+        function toggleMenu() {
+            const overlay = document.getElementById('menuOverlay');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : 'auto';
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            const content = getModalContent(type);
+            modalContent.innerHTML = content;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeModalOnClick(event) {
+            if (event.target === event.currentTarget) closeModal();
+        }
+
+        function getModalContent(type) {
+            const contents = {
+                definicion: {
+                    icon: 'fa-book',
+                    title: 'Definición y Conceptos Fundamentales',
+                    subtitle: 'Arquitectura de Bases de Datos',
+                    mainInfo: 'La independencia física de datos en las bases de datos relacionales es un principio fundamental que se refiere a la capacidad de modificar la forma en que los datos se almacenan físicamente sin afectar el esquema lógico ni las aplicaciones que acceden a esos datos. Los usuarios y programas ven los datos igual, aunque internamente el sistema cambie cómo los guarda.',
+                    bullets: [
+                        'Separación entre nivel lógico y nivel físico',
+                        'Nivel interno (físico): cómo se almacenan realmente los datos en disco (archivos, bloques, índices).',
+                        'Nivel conceptual (lógico): cómo se organizan los datos en tablas, relaciones y atributos.',
+                        'Nivel externo (vistas): cómo los usuarios o aplicaciones ven los datos.',
+                        'La independencia física implica que los cambios en el nivel interno no afectan al nivel conceptual.'
+                    ],
+                    examples: [
+                        'Una tabla puede pasar de almacenamiento secuencial a almacenamiento con índices sin cambiar las consultas SQL.',
+                        'El SGBD (Oracle, MySQL, PostgreSQL) traduce consultas lógicas (SQL) y optimiza el acceso a los datos.',
+                        'El motor de BD decide la mejor estrategia física para recuperar los datos, manteniendo la independencia.'
+                    ],
+                    mainImage: 'https://media.istockphoto.com/id/2206650227/es/foto/centro-de-datos-moderno-de-alta-tecnolog%C3%ADa-con-racks-de-servidores-iluminados-y-pantallas.webp?a=1&b=1&s=612x612&w=0&k=20&c=UpO9VSRoDEr2pyTmtp0pctPbP1XsAjLu2PLhO8HgRl8=',
+                    galleryImages: [
+                        'https://images.pexels.com/photos/17489151/pexels-photo-17489151.jpeg',
+                        'https://media.istockphoto.com/id/1463092481/es/foto/las-tablas-de-bases-de-datos-relacionales-de-las-bases-de-datos-se-colocan-en-c%C3%B3digo-de.jpg?b=1&s=612x612&w=0&k=20&c=xhRu7mEY39d_Ts2SWgjXaihVd1JZrqdTaAD67lrm65Y=',
+                        'https://images.pexels.com/photos/17489157/pexels-photo-17489157.jpeg',
+                        'https://images.pexels.com/photos/4508751/pexels-photo-4508751.jpeg'
+                    ]
+                },
+                cambios: {
+                    icon: 'fa-microchip',
+                    title: 'Cambios Físicos Permitidos',
+                    subtitle: 'Transparencia para las Aplicaciones',
+                    mainInfo: 'Gracias a la independencia física, el administrador de la base de datos (DBA) puede optimizar el rendimiento o resolver problemas de almacenamiento realizando cambios a nivel de hardware o de estructura de archivos, sin que los usuarios o programadores se enteren.',
+                    bullets: [
+                        'Cambios en Índices: Crear, modificar o eliminar índices para acelerar consultas.',
+                        'Migración a Nuevo Hardware: Mover archivos a SSD, más RAM o almacenamiento en la nube.',
+                        'Organización de Archivos: Reorganizar tablespaces/filegroups para equilibrar E/S.',
+                        'Fragmentación y Reorganización: Reconstruir tablas o índices para eliminar fragmentación.',
+                        'Parámetros del Motor: Modificar configuraciones como memoria caché o nivel de paralelismo.'
+                    ],
+                    examples: [
+                        'Ejemplo Índices: Crear índice en VENTAS(fecha) acelera consultas sin cambiar el SELECT.',
+                        'Ejemplo Hardware: Migrar BD de HDD a SSD mejora rendimiento sin tocar aplicaciones.',
+                        'Ejemplo Organización: Separar índices en disco distinto para mejorar concurrencia.',
+                        'Ejemplo Fragmentación: Reorganizar tabla CLIENTES para mejorar lecturas secuenciales.'
+                    ],
+                    mainImage: 'https://images.pexels.com/photos/5073493/pexels-photo-5073493.jpeg',
+                    galleryImages: [
+                        'https://images.pexels.com/photos/1181354/pexels-photo-1181354.jpeg',
+                        'https://images.pexels.com/photos/247791/pexels-photo-247791.png',
+                        'https://images.pexels.com/photos/17489155/pexels-photo-17489155.jpeg',
+                        'https://images.pexels.com/photos/12899168/pexels-photo-12899168.jpeg'
+                    ]
+                },
+                beneficios: {
+                    icon: 'fa-star',
+                    title: 'Importancia y Beneficios',
+                    subtitle: 'Ventajas Clave',
+                    mainInfo: 'La independencia física de datos en las bases de datos es clave para separar el almacenamiento físico de la estructura lógica, permitiendo cambios en el hardware o archivos sin afectar las aplicaciones. Es fundamental porque libera a los desarrolladores de preocuparse por detalles físicos, enfocándolos en la lógica de datos. Mejora la calidad general del sistema, reduce inconsistencias y facilita el mantenimiento a largo plazo.',
+                    bullets: [
+                        'Flexibilidad: Cambia almacenamiento (ej. de HDD a SSD, índices o compresión) sin tocar apps o esquemas lógicos.',
+                        'Optimización de rendimiento: Ajusta estructuras físicas para consultas más rápidas sin interrupciones.',
+                        'Escalabilidad: Adapta a más datos o carga sin rediseñar todo el sistema.',
+                        'Menos costos y disrupciones: Migraciones y upgrades son simples; no requiere reescribir programas.',
+                        'Seguridad y mantenimiento: Implementa controles lógicos independientes del físico; reduce redundancia.'
+                    ],
+                    examples: [
+                        'Cambiar de cinta magnética a disco sin afectar aplicaciones.',
+                        'Reorganizar archivos para mejor acceso o mover la BD de C: a D: sin impacto en usuarios.',
+                        'En empresas, permite upgrades de hardware sin downtime.'
+                    ],
+                    mainImage: 'https://media.istockphoto.com/id/1481562843/es/foto/el-usuario-puede-verificar-el-almacenamiento-de-datos-de-la-base-de-datos-sql-en-la-pantalla.jpg?b=1&s=612x612&w=0&k=20&c=ELvsC9G2TR6msJw744FV3EzZey79x8DYmGrqG1up-ic=',
+                    galleryImages: [
+                        'data:image/png;base64,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',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=200',
+                        'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=200',
+                        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=200'
+                    ]
+                },
+                comparacion: {
+                    icon: 'fa-scale-balanced',
+                    title: 'Independencia Física vs. Lógica',
+                    subtitle: 'Comparativa Detallada',
+                    mainInfo: 'La independencia de los datos es la capacidad de modificar la estructura de una base de datos sin afectar el funcionamiento de las aplicaciones o programas que la utilizan. Se divide en dos tipos: Física y Lógica.',
+                    bullets: [
+                        'Independencia Física: Cambios en cómo se guardan los datos (almacenamiento, índices, hardware). Es transparente para las aplicaciones.',
+                        'Independencia Lógica: Cambios en la estructura lógica (agregar columnas, tablas, relaciones). Puede requerir modificaciones en las aplicaciones.',
+                        'Física: Más frecuente, orientada a rendimiento y mantenimiento.',
+                        'Lógica: Menos frecuente, orientada a nuevos requisitos de negocio.'
+                    ],
+                    examples: [
+                        'Ejemplo Física: Cambiar el tipo de disco (HDD a SSD) sin modificar el sistema escolar.',
+                        'Ejemplo Lógica: Agregar un nuevo campo como "correo electrónico del alumno" sin afectar el programa principal.',
+                        'Diferencia clave: Física = "cómo se guarda", Lógica = "cómo se organiza".'
+                    ],
+                    mainImage: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800',
+                    galleryImages: [
+                        'https://images.unsplash.com/photo-1667372459567-3853510dd5ce?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGJhc2VzJTIwZGUlMjBkYXRvc3xlbnwwfHwwfHx8MA%3D%3D',
+                        'https://images.pexels.com/photos/267389/pexels-photo-267389.jpeg',
+                        'https://images.pexels.com/photos/33955927/pexels-photo-33955927.jpeg',
+                        'https://images.pexels.com/photos/1148820/pexels-photo-1148820.jpeg',
+                    ]
+                },
+                retos: {
+                    icon: 'fa-triangle-exclamation',
+                    title: 'Retos y Limitaciones',
+                    subtitle: 'Desafíos de Implementación',
+                    mainInfo: 'Aunque ofrece ventajas, la independencia física presenta desafíos y limitaciones que requieren consideración en el diseño y operación de bases de datos.',
+                    bullets: [
+                        'Complejidad del diseño: Requiere un diseño cuidadoso de la arquitectura de la base de datos.',
+                        'Rendimiento: Puede afectar el rendimiento si no se gestiona adecuadamente.',
+                        'Seguridad: Puede crear vulnerabilidades si no se implementan medidas adecuadas.',
+                        'Escalabilidad: Difícil escalar sin afectar la independencia física.',
+                        'Compatibilidad: Garantizar compatibilidad con diferentes sistemas operativos y hardware.',
+                        'Dependencia de la tecnología: Limitada por la tecnología utilizada.',
+                        'Costos: Puede ser costosa, especialmente en reestructuraciones significativas.'
+                    ],
+                    examples: [
+                        'Requiere monitoreo continuo para predecir el rendimiento tras cambios.',
+                        'La abstracción de la capa física puede ser limitada, afectando la independencia.',
+                        'Backups y planes de contingencia durante migraciones.'
+                    ],
+                    mainImage: 'https://images.pexels.com/photos/7480526/pexels-photo-7480526.jpeg',
+                    galleryImages: [
+                        'https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg',
+                        'https://media.istockphoto.com/id/913980416/es/foto/tabla-financiera-de-madera-superficie-mostrando-disminuci%C3%B3n-dr%C3%A1stica.webp?a=1&b=1&s=612x612&w=0&k=20&c=Vuyf6_IyMhk1ym5bOCsvj6cu8a5altCSaK-gGiX-498=',
+                        'https://images.pexels.com/photos/47344/dollar-currency-money-us-dollar-47344.jpeg',
+                        'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=200'
+                    ]
+                },
+                cierre: {
+                    icon: 'fa-flag-checkered',
+                    title: 'Conclusiones',
+                    subtitle: 'Reflexión Final',
+                    mainInfo: 'La independencia física en las bases de datos permite que los datos se almacenen y se modifiquen internamente sin afectar la forma en que los usuarios o los programas los utilizan. Esto facilita la actualización y el mantenimiento del sistema, ya que los cambios en el almacenamiento no alteran el funcionamiento de las aplicaciones.',
+                    bullets: [
+                        'Base para sistemas escalables y flexibles.',
+                        'Clave en migración a la nube y adopción de nuevas tecnologías.',
+                        'Facilita la innovación tecnológica sin interrumpir operaciones.',
+                        'Reduce downtime operativo y optimiza recursos.',
+                        'Prepara las bases de datos para el futuro digital.',
+                        'Hace que las bases de datos sean más eficientes y fáciles de administrar.'
+                    ],
+                    examples: [
+                        'Bases de datos autónomas que se optimizan solas.',
+                        'Almacenamiento multi-nube con migraciones transparentes.',
+                        'Sistemas que evolucionan sin afectar a los usuarios.'
+                    ],
+                    mainImage: 'https://plus.unsplash.com/premium_photo-1664297989345-f4ff2063b212?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YmFzZXMlMjBkZSUyMGRhdG98ZW58MHx8MHx8fDA%3D',
+                    galleryImages: [
+                        'https://media.istockphoto.com/id/2181241020/es/foto/intercambie-informaci%C3%B3n-y-datos-con-la-tecnolog%C3%ADa-de-internet-en-la-nube-sistema-digital-de.jpg?s=612x612&w=0&k=20&c=YsDFyT3ilq1RVAGfWcnjvjwQaDALrTeTv4bH1yLa00U=',
+                        'https://images.pexels.com/photos/9783346/pexels-photo-9783346.jpeg',
+                        'https://images.pexels.com/photos/546819/pexels-photo-546819.jpeg',
+                        'https://media.istockphoto.com/id/1463092481/photo/relational-database-tables-on-databases-are-placed-on-structured-query-language-code-with.jpg?s=1024x1024&w=is&k=20&c=tRt3gneCI7sZg7mWOo2BKxoYd7H5GGGTA1SqN1CQTM8='
+                    ]
+                }
+            };
+
+            const data = contents[type] || contents.definicion;
+
+            return `
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <div class="modal-header">
+                    <div class="modal-avatar"><i class="fas ${data.icon}"></i></div>
+                    <div class="modal-title">
+                        <h2>${data.title}</h2>
+                        <p>${data.subtitle}</p>
+                    </div>
+                </div>
+                <div class="main-image-area">
+                    <img src="${data.mainImage}" alt="${data.title}">
+                </div>
+                <div class="info-box">
+                    <h4>📌 Concepto Principal</h4>
+                    <p>${data.mainInfo}</p>
+                </div>
+                <h4 style="color:white;margin:2rem 0 1rem;">🔑 Puntos Clave</h4>
+                <div class="bullet-points">
+                    ${data.bullets.map((b, i) => `
+                        <div class="bullet" style="--i:${i}"><i class="fas fa-check-circle"></i> ${b}</div>
+                    `).join('')}
+                </div>
+                <h4 style="color:white;margin:2rem 0 1rem;">💡 Ejemplos</h4>
+                <div class="bullet-points">
+                    ${data.examples.map((e, i) => `
+                        <div class="bullet" style="--i:${i+10}"><i class="fas fa-lightbulb"></i> ${e}</div>
+                    `).join('')}
+                </div>
+                <h4 style="color:white;margin:2rem 0 1rem;">🖼️ Galería</h4>
+                <div class="image-gallery">
+                    ${data.galleryImages.map(img => `
+                        <div class="gallery-item"><img src="${img}" alt="Galería"></div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
